@@ -33,7 +33,7 @@ use ieee.std_logic_unsigned.all;
 
 entity N_Counter is
 	 GENERIC(N: Integer := 8);
-    Port ( en : in  STD_LOGIC;
+    Port ( count_in : in STD_LOGIC;
 			  reset : in STD_LOGIC;
            clock : in  STD_LOGIC;
            sig_out : out  STD_LOGIC);
@@ -46,15 +46,15 @@ begin
 
 sig_out <= uscita;
 
-PROCESS(en,clock,reset)
+PROCESS(count_in,clock,reset)
 BEGIN
-	if reset = '1' or en = '0' then 
+	if reset = '1' then 
 	counter <= 0;
 	uscita <= '0';
-	elsif rising_edge(clock) then
+	elsif rising_edge(clock) and count_in = '1' then
 		counter <= counter +1;
-		if counter = N-1 then
-		uscita <= not uscita;
+		if counter = N-2 then
+		uscita <= '1';
 		counter <= 0;
 		end if;
 end if;

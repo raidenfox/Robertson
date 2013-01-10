@@ -2,7 +2,7 @@
 -- Company: 
 -- Engineer: 
 -- 
--- Create Date:    09:47:52 11/11/2012 
+-- Create Date:    11:42:56 01/07/2013 
 -- Design Name: 
 -- Module Name:    ShiftRegister - Behavioral 
 -- Project Name: 
@@ -31,38 +31,37 @@ use IEEE.STD_LOGIC_1164.ALL;
 
 entity ShiftRegister is
     GENERIC(N: Integer := 8);
-    Port ( loader: STD_LOGIC_VECTOR (N-1 downto 0);
-			  scan_in : in  STD_LOGIC;
-			  en : in STD_LOGIC;
-           write_shift : in  STD_LOGIC;
+    Port ( d : in  STD_LOGIC;
+			  data : in STD_LOGIC_VECTOR (N-1 downto 0);
+			  enable : in STD_LOGIC;
+			  load_me : in STD_LOGIC;
+			  shift_me : in STD_LOGIC;
            clock : in  STD_LOGIC;
-           scan_out : out  STD_LOGIC;
-			  loaded: out STD_LOGIC_VECTOR (N-1 downto 0)
-			  );
+           reset : in  STD_LOGIC;
+			  data_out : out STD_LOGIC_VECTOR (N-1 downto 0);
+           q : out  STD_LOGIC);
 end ShiftRegister;
-
 architecture Behavioral of ShiftRegister is
-	 COMPONENT MuxedFlipD IS
-	 Port ( scan : in STD_LOGIC;
-			  ws : in STD_LOGIC;
-			  D : in  STD_LOGIC;
-			  en : in  STD_LOGIC;
-           clock : in  STD_LOGIC;
-           Q : out  STD_LOGIC
-			  );
-	 END COMPONENT MuxedFlipD;
-	 
-	 signal comm: STD_LOGIC_VECTOR (N downto 0) := "000000000";
+
 begin
-	 comm(N) <= scan_in;
-	 scan_out <= comm(0);
-	 
-	 GENC1: for i in N - 1 downto 0 GENERATE
-	 begin
-		CX1: MuxedFlipD port map(comm(i+1),write_shift,loader(i),en,clock,comm(i));
-	 END GENERATE;
-	 
-	 loaded <= comm(N-1 downto 0);
+
+PROCESS (d, clock, reset)
+variable internal_value: STD_LOGIC_VECTOR (N-1 downto 0) := (others => '0');
+		BEGIN
+			IF rising_edge(clock) THEN
+			   IF reset = '1' THEN
+					internal_value := (others => '0');
+				ELSIF enable = '1' then
+					internal_value := data;
+				ELSIF shift_me = '1' then
+					internal_value := d & internal_value(N-1 downto 1);
+				ELSIF load_me = '1' then
+					internal_value :=  internal_value(N-1) & internal_value(N-1 downto 1);
+				END IF;
+			END IF;
+			data_out <= internal_value;
+			q <= internal_value(0);
+END PROCESS;
 
 end Behavioral;
 

@@ -31,10 +31,11 @@ use IEEE.STD_LOGIC_1164.ALL;
 
 entity CLA_Parallel_Adder is
     GENERIC( N: Integer := 8);
-    Port ( x_in : in  STD_LOGIC_VECTOR (7 downto 0);
-           y_in : in  STD_LOGIC_VECTOR (7 downto 0);
+    Port ( x_in : in  STD_LOGIC_VECTOR (N-1 downto 0);
+           y_in : in  STD_LOGIC_VECTOR (N-1 downto 0);
 			  c_in : in STD_LOGIC;
-           sum : out  STD_LOGIC_VECTOR (8 downto 0));
+           sum : out  STD_LOGIC_VECTOR (N-1 downto 0);
+			  c_out : out STD_LOGIC);
 end CLA_Parallel_Adder;
 
 architecture Behavioral of CLA_Parallel_Adder is
@@ -67,17 +68,28 @@ architecture Behavioral of CLA_Parallel_Adder is
            s_out : out  STD_LOGIC_VECTOR (N-1 downto 0));
 	 END COMPONENT;
 
-signal p_append,g_append,c_real,sum_p : STD_LOGIC_VECTOR (N-1 downto 0) := (others => '0');
-signal c_append,sum_tot : STD_LOGIC_VECTOR (N downto 0) := (others => '0');
+signal nullval : STD_LOGIC_VECTOR (N-2 downto 0) := (others => '0');
+signal y_ing,x1,p_append,g_append,c_real,sum_p : STD_LOGIC_VECTOR (N-1 downto 0) := (others => '0');
+signal c_append : STD_LOGIC_VECTOR (N downto 0) := (others => '0');
 begin
 
-c_real <= c_append(N-1 downto 0);
-sum_tot <= c_append(N) & sum_p;
-sum <= sum_tot;
+PROCESS(c_in)
+BEGIN
+if c_in = '1' then
+nullval <= (others => '1');
+END IF;
+END PROCESS;
 
-PG:PG_Network port map(x_in,y_in,p_append,g_append);
+x1 <= nullval & c_in;
+y_ing <= y_in xor x1;
+
+c_real <= c_append(N-1 downto 0);
+c_out <= c_append(N);
+sum <= sum_p;
+
+PG:PG_Network port map(x_in,y_ing,p_append,g_append);
 CLAN:CLA_Network port map(p_append,g_append,c_in,c_append);
-FANET: FA_Network port map(x_in,y_in,c_real,sum_p);
+FANET: FA_Network port map(x_in,y_ing,c_real,sum_p);
 
 end Behavioral;
 

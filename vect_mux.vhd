@@ -31,10 +31,9 @@ use IEEE.STD_LOGIC_1164.ALL;
 
 entity vect_mux is
     GENERIC (N: Integer := 8);
-    Port ( m_in : in  STD_LOGIC_VECTOR (7 downto 0);
-			  clock : STD_LOGIC;
+    Port ( m_in : in  STD_LOGIC_VECTOR (N-1 downto 0);
 			  scan : in STD_LOGIC;
-           value_out : out  STD_LOGIC_VECTOR (7 downto 0));
+           value_out : out  STD_LOGIC_VECTOR (N-1 downto 0));
 end vect_mux;
 
 architecture Behavioral of vect_mux is
@@ -42,18 +41,9 @@ signal null_in : STD_LOGIC_VECTOR (N-1 downto 0) := (others => '0');
 
 begin
 
-PROCESS(clock,scan)
-begin
-if rising_edge(clock) then
-CASE scan IS
-	 WHEN '1' =>
-		value_out <= m_in;
-	 WHEN '0' =>
-		value_out <= null_in ;
-	 WHEN others =>
-		value_out <= null_in ;
-END CASE;
-end if;
-end process;
+with scan select
+	  value_out <= m_in when '1', null_in when others; 
+
+
 end Behavioral;
 
